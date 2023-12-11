@@ -76,7 +76,7 @@ class Db{
         } else {
             $resultset['msg'] = "One Record inserted";
         }
-        return $resultset;
+        return json_encode($resultset);
     }
 
     public function updateDb($tableName, $updateData, $whereClause){
@@ -132,12 +132,17 @@ class Db{
             $result = mysqli_query($this->connection, $sqlQuery);            
             if (!$result){            
                 $resultset['error'] = mysqli_error($this->connection);            
-            } else {
-                $resultset['result'] = $result;           
+            } else {                
+                if ($result->num_rows){
+                    $resultset['result'] = $result;           
+                }
+                else {
+                    $resultset['result'] = 0;           
+                }
             } 
         }catch(Exception $ex){        
             $resultset['error']['dberror'] = $ex->getMessage();
-        }       
+        }         
         return $resultset;
     }
 
@@ -152,12 +157,17 @@ class Db{
     }
     
     public function getApiData($tableName, $whereClause = null){          
-        $res = $this->getDataTable($tableName, $whereClause);       
-        if (isset($res['result']) && $res['result']){
+        $res = $this->getDataTable($tableName, $whereClause);        
+        if (isset($res['result']) && $res['result']){            
             $arrayResult['data'] = mysqli_fetch_all($res['result']);    
         }
         else {
-            $arrayResult['error'] = $res['error'];
+            if (isset($res['result']) &&  $res['result'] === 0){
+                $arrayResult['data'] = 0;
+            } 
+            else {
+                $arrayResult['error'] = $res['error'];
+            }
         }        
         return json_encode($arrayResult);
     }
@@ -236,7 +246,7 @@ else if(isset($_POST['op']) && $_POST['op'] == 'del' && isset($_POST['id'])){
 }
 else if(isset($_POST['op']) && $_POST['op'] == 'show'){
     if (isset($_POST['name'])){
-        $whereClause[] = "name = " . "'" . validateInputs($_POST['name']) . "'";
+        $whereClause[] = "name  " . "like '%" . validateInputs($_POST['name']) . "%'";
     }
     if (isset($_POST['family'])){
         $whereClause[] = "family = " . "'" . validateInputs($_POST['family']) . "'";    
@@ -264,8 +274,7 @@ else {
     echo json_encode(['msg' => "Command Not Found!!!"]);
 }
 
-// $dbObj->getDataTable($tblName, $whereClause);
-
+// $dbObj->getDataTable($tblName, $whereClause); 
 
 if (count($updateData)){
     echo $dbObj->updateDb($tblName, $updateData, $whereClause);
