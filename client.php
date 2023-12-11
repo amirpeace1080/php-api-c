@@ -20,7 +20,7 @@ function runWebService($formData = []){
         curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );      
         
         $result = curl_exec($handle);       
-        dd($result);
+        // dd($result);
 
         if(curl_errno($handle)){
             $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
