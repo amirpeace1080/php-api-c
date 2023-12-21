@@ -1,12 +1,13 @@
 <?php
-define("WEBSERVICE_URL", "http://localhost/practice/database.php");
-// define("WEBSERVICE_URL", "http://localhost/php-api-c/database.php");
+// define("WEBSERVICE_URL", "http://localhost/practice/database.php");
+define("WEBSERVICE_URL", "http://localhost/php-api-c/database.php");
+
 function dd($str){
     echo '<pre>';
     var_dump($str);
 }
 
-function runWebService($formData = []){
+function runWebService($formData = [], $debugMode = false){
     $resultSet = [];
     try{
         $handle = curl_init();        
@@ -19,13 +20,15 @@ function runWebService($formData = []){
         curl_setopt($handle, CURLOPT_POSTFIELDS, $queryData);
         curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );      
         
-        $result = curl_exec($handle);       
-        // dd($result);
+        $result = curl_exec($handle); 
+
+        if($debugMode){
+            dd($result);
+        }        
 
         if(curl_errno($handle)){
             $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-            if ($httpCode == 404){            
-                echo "Your URL does not exist";
+            if ($httpCode == 404){                
                 $resultSet['error'] = "Your URL does not exist";
             } else {
                 $resultSet['error'] = "Known error!";
@@ -99,31 +102,76 @@ function setWebserviceData($formData){
 }
 
 
-function getSearch($op, $value){
-    $formData = [
-        'op' => $op,
-        'search' => $value
-    ];
-    return $formData;
-}
+function getCommand($op, $value = null){
+    $formData = [ 'op' => $op];
+    
+    switch($op){
+        case 'srch' : 
+        $data = [            
+            'name' => 'mo'
+        ];
+        break;        
+        case 'show' : 
+        /*$data = [         
+            'name' => '',
+            'family' => '',
+            'username' => ''            
+        ];*/
+        $data = [         
+            'all' => '1',            
+        ];
+        break;        
+        case 'create' : 
+            $data = [              
+                'name' => 'majid',
+                'family' => 'moradi',
+                'username' => 'monline',
+                'password' => md5('123456')
+            ];
+        break;
 
-$formData = [
-    'op' => 'show',
-    'name' => 'mo'
-];
+        case 'del' : 
+            $data = [                
+                'id' => 'majid'                
+            ];
+        break;
 
-$formData = [
-    'op' => 'create',
-    'name' => 'majid',
-    'family' => 'moradi',
-    'username' => 'monline',
-    'password' => md5('123456')
-];
+        case 'edit' : 
+            $data = [               
+                'id' => 3,
+                'name' =>  'Morteza',
+                'family' =>  'javadi'
+            ];
+        break;
+        default:
+            $data = [];
+        }    
+        $formData = array_merge($formData, $data);    
+        return $formData;        
+    }
+
+    setWebserviceData(getCommand('show'));
+    
+  
+    /*
+    for($i=0; $i<10; $i++){    
+        $formData = [
+            'op' => 'create',
+            'name' => 'majid' . $i,
+            'family' => 'moradi' . $i,
+            'username' => 'monline' . $i ,
+            'password' => md5('123456')
+        ];
+        setWebserviceData($formData);
+    }
+    */
+    
+
 
 
 
 // getWebserviceData($formData);
-setWebserviceData($formData);
+//  setWebserviceData($formData);
 // ini_set('display_error', 0);
 // error_reporting(0)
 ?>

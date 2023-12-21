@@ -66,7 +66,7 @@ class Db{
         }
       }
 
-    public function inserrtDb($tableName, $data){        
+    public function insertDb($tableName, $data){        
         $resultset = [];
         $mySqlString = "INSERT INTO " . $tableName . " VALUES(null,'" . $data['name'] . "','" . $data['family'] . "', '" . $data['username'] . "', '" . $data['password'] . "', null, null)";
         // var_dump($mySqlString);
@@ -95,7 +95,7 @@ class Db{
         } else {
             $resultset['msg'] = mysqli_affected_rows($this->connection) . " Records updated <br/>";
         }
-        return $resultset;
+        return json_encode($resultset);
     }
 
     public function deleteDb($tableName, $whereClause = ["1!=1"]){
@@ -110,7 +110,7 @@ class Db{
         } else {
             $resultset['msg']  =  mysqli_affected_rows($this->connection) . " Records deleted <br/>";
         }
-        return $resultset;
+        return json_encode($resultset);
     }
 
     public function getDataTable($tableName, $whereClause = null){
@@ -187,18 +187,11 @@ $tblName = "person";
 $dbObj = new Db();
 
 // echo json_encode($dbObj->createTable());
+// echo $dbObj->createTable();
 
-/*
-for($i=0; $i<10; $i++){
-    $data = [
-        'name' => 'Mosab' . $i,
-        'family' => 'sharifi' . $i,
-        'username' => 'moh' . $i,
-        'password' => md5('987654')    
-    ];    
-    echo json_encode($dbObj->inserrtDb($tblName, $data));
-}
-*/
+
+
+
 
 // $dbObj->showTable($tblName);
 
@@ -254,9 +247,13 @@ else if(isset($_POST['op']) && $_POST['op'] == 'show'){
     if (isset($_POST['username'])){
         $whereClause[] = "username = " . "'" . validateInputs($_POST['username']) . "'";    
     }
-    if (isset($_POST['password'])){
-        $whereClause[] = "password = " . "'" . md5(validateInputs($_POST['password'])) . "'";    
+
+    if (isset($_POST['all'])){
+        $whereClause[] = "1";
     }
+   /* if (isset($_POST['password'])){
+        $whereClause[] = "password = " . "'" . md5(validateInputs($_POST['password'])) . "'";    
+    }*/
 } 
 else if (isset($_POST['op']) && $_POST['op'] == 'create' && (    
     isset($_POST['name']) && 
@@ -291,5 +288,5 @@ else if (count($delData)){
 }
 else if (count($createData)){
     // echo json_encode($dbObj->inserrtDb($tblName, $createData));
-    echo $dbObj->inserrtDb($tblName, $createData);
+    echo $dbObj->insertDb($tblName, $createData);
 }
