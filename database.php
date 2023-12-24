@@ -55,6 +55,17 @@ class Db{
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
         ";
+        // 1 user 2 author 3  admin 4 superAdmin
+        $mySqlString = "
+            CREATE TABLE IF NOT EXISTS user (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(30),
+                password VARCHAR(50),
+                userType TINYINT DEFAULT 4,                
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+        ";
 
         $result = mysqli_query($this->connection, $mySqlString);
 
@@ -137,7 +148,7 @@ class Db{
                     $resultset['result'] = $result;           
                 }
                 else {
-                    $resultset['result'] = 0;           
+                    $resultset['result'] = 0;      
                 }
             } 
         }catch(Exception $ex){        
@@ -187,7 +198,7 @@ $tblName = "person";
 $dbObj = new Db();
 
 // echo json_encode($dbObj->createTable());
-// echo $dbObj->createTable();
+//  echo $dbObj->createTable();
 
 
 
@@ -213,10 +224,22 @@ $whereClause = [];
 $updateData = [];
 $createData = [];
 $delData = [];
+$command = true;
+$userType = 0;
 
+if (isset($_POST['user']) && isset($_POST['pass'])){
+    $whereClause[] = "username = " . "'" . validateInputs($_POST['user']) . "'";   
+    $whereClause[] = "password = " . "'" . validateInputs($_POST['pass']) . "'";   
+    $userData =  json_decode($dbObj->getApiData('user', $whereClause), true);
+    if (isset($userData['data'])){
+        $userInfo = $userData['data'][0];
+        if ($userInfo){
+            $userType = intval($userInfo[3]);            
+        }        
+    }
+}
 
-
-if (isset($_POST['op']) && $_POST['op'] == 'edit' && isset($_POST['id'])){
+if ($userType > 2 &&  isset($_POST['op']) && $_POST['op'] == 'edit' && isset($_POST['id'])){
     // echo "Edit Mode";
     if (isset($_POST['name'])){
         $updateData[] = "name = " . "'" . validateInputs($_POST['name']) . "'";
@@ -229,15 +252,15 @@ if (isset($_POST['op']) && $_POST['op'] == 'edit' && isset($_POST['id'])){
     }
     // filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
 } 
-else if (isset($_POST['op']) && $_POST['op'] == 'srch' && isset($_POST['search']) && !empty($_POST['search'])){        
+else if ($userType > 0 && isset($_POST['op']) && $_POST['op'] == 'srch' && isset($_POST['search']) && !empty($_POST['search'])){        
     $whereClause[] = "username like " . "'%" . validateInputs($_POST['search']) . "%'";    
 }
-else if(isset($_POST['op']) && $_POST['op'] == 'del' && isset($_POST['id'])){
+else if($userType > 3 &&  isset($_POST['op']) && $_POST['op'] == 'del' && isset($_POST['id'])){
     if (intval($_POST['id'])){
         $delData[] = "id=" .  intval($_POST['id']);
     }
 }
-else if(isset($_POST['op']) && $_POST['op'] == 'show'){
+else if($userType > 0 && isset($_POST['op']) && $_POST['op'] == 'show'){
     if (isset($_POST['name'])){
         $whereClause[] = "name  " . "like '%" . validateInputs($_POST['name']) . "%'";
     }
@@ -255,7 +278,7 @@ else if(isset($_POST['op']) && $_POST['op'] == 'show'){
         $whereClause[] = "password = " . "'" . md5(validateInputs($_POST['password'])) . "'";    
     }*/
 } 
-else if (isset($_POST['op']) && $_POST['op'] == 'create' && (    
+else if ($userType > 2 &&  isset($_POST['op']) && $_POST['op'] == 'create' && (    
     isset($_POST['name']) && 
     isset($_POST['family']) && 
     isset($_POST['username']) &&     
@@ -268,25 +291,31 @@ else if (isset($_POST['op']) && $_POST['op'] == 'create' && (
         $createData['password'] = validateInputs($_POST['password']);    
 } 
 else {
-    echo json_encode(['msg' => "Command Not Found!!!"]);
+    $command = false;
+    echo json_encode(['msg' => "Command Not Found!!! OR You don't have enough permission"]);
 }
 
 // $dbObj->getDataTable($tblName, $whereClause); 
 
-if (count($updateData)){
-    echo $dbObj->updateDb($tblName, $updateData, $whereClause);
-    // echo json_encode($dbObj->updateDb($tblName, $updateData, $whereClause));
-}
-else if (count($whereClause)){
-    // return $dbObj->getApiData($tblName, $whereClause);
-    // echo json_encode($dbObj->getApiData($tblName, $whereClause));
-    echo $dbObj->getApiData($tblName, $whereClause);
-} 
-else if (count($delData)){    
-    echo $dbObj->deleteDb($tblName, $delData);
-    // echo json_encode($dbObj->deleteDb($tblName, $delData));
-}
-else if (count($createData)){
-    // echo json_encode($dbObj->inserrtDb($tblName, $createData));
-    echo $dbObj->insertDb($tblName, $createData);
+if ($command){
+    if (count($updateData)){
+        echo $dbObj->updateDb($tblName, $updateData, $whereClause);
+        // echo json_encode($dbObj->updateDb($tblName, $updateData, $whereClause));
+    }
+    else if (count($whereClause)){
+        // return $dbObj->getApiData($tblName, $whereClause);
+        // echo json_encode($dbObj->getApiData($tblName, $whereClause));
+        echo $dbObj->getApiData($tblName, $whereClause);
+    } 
+    else if (count($delData)){    
+        echo $dbObj->deleteDb($tblName, $delData);
+        // echo json_encode($dbObj->deleteDb($tblName, $delData));
+    }
+    else if (count($createData)){
+        // echo json_encode($dbObj->inserrtDb($tblName, $createData));
+        echo $dbObj->insertDb($tblName, $createData);
+    }
+    else {
+        echo json_encode(['msg' => "No Result!!!"]);
+    }
 }

@@ -11,7 +11,7 @@ function runWebService($formData = [], $debugMode = false){
     $resultSet = [];
     try{
         $handle = curl_init();        
-        $queryData = http_build_query($formData,'', '&');    
+        $queryData = http_build_query($formData,'', '&');         
         $url = WEBSERVICE_URL;
         curl_setopt($handle, CURLOPT_URL, $url);
         curl_setopt($handle, CURLOPT_TRANSFERTEXT, true);
@@ -60,28 +60,6 @@ function runWebService($formData = [], $debugMode = false){
     return $resultSet;
 }
 
-function getWebserviceData($formData){      
-    $resultSet = runWebService($formData);
-    if (isset($resultSet['data']) && $resultSet['data']){
-        foreach($resultSet['data'] as $data){
-            echo "<br>";
-            print_r($data);
-        }             
-    }
-    else if (isset($resultSet['error']) && $resultSet['error']){
-        if (isset($resultSet['error']['dberror']) && $resultSet['error']['dberror'])
-        {
-            echo "Database Error!!!";
-        }
-        else{
-            echo $resultSet['error'];
-        }        
-    } 
-    else {
-        echo $resultSet['msg'];
-    }
-}
-
 function setWebserviceData($formData){
     $resultSet = runWebService($formData);
     if (isset($resultSet['data']) && $resultSet['data']){        
@@ -102,24 +80,37 @@ function setWebserviceData($formData){
 }
 
 
-function getCommand($op, $value = null){
-    $formData = [ 'op' => $op];
+function getCommand($user = null, $pass = null, $op = null, $value = null){
+    $formData = [ 
+        'op' => $op,
+        'user' => $user,
+        'pass' => $pass
+    ];
     
+    $all = 1;
+    // $name = 'd3';
+    // $family = 'javadi';
+    // $username = 'monline';
+    $data = [];
     switch($op){
         case 'srch' : 
         $data = [            
             'name' => 'mo'
         ];
         break;        
-        case 'show' : 
-        /*$data = [         
-            'name' => '',
-            'family' => '',
-            'username' => ''            
-        ];*/
-        $data = [         
-            'all' => '1',            
-        ];
+        case 'show' :        
+            if(isset($name)){
+                $data['name'] = $name;
+            }
+            if(isset($family)){
+                $data['family'] = $family;
+            }
+            if(isset($username)){
+                $data['username'] = $username;
+            }
+            if(isset($all)){
+                $data = ['all' => '1'];
+            }        
         break;        
         case 'create' : 
             $data = [              
@@ -132,15 +123,15 @@ function getCommand($op, $value = null){
 
         case 'del' : 
             $data = [                
-                'id' => 'majid'                
+                'id' => '2'                
             ];
         break;
 
         case 'edit' : 
             $data = [               
-                'id' => 3,
+                'id' => 8,
                 'name' =>  'Morteza',
-                'family' =>  'javadi'
+                'family' =>  'razavi'
             ];
         break;
         default:
@@ -148,9 +139,16 @@ function getCommand($op, $value = null){
         }    
         $formData = array_merge($formData, $data);    
         return $formData;        
-    }
+ }
 
-    setWebserviceData(getCommand('show'));
+    $username = "ali";
+    $password = md5('123456');
+
+    setWebserviceData(getCommand($username, $password, 'show'));
+    // setWebserviceData(getCommand('create'));
+    // setWebserviceData(getCommand('edit'));
+    // setWebserviceData(getCommand('del'));
+    // setWebserviceData(getCommand());
     
   
     /*
