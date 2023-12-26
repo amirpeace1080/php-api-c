@@ -138,7 +138,7 @@ class Db{
         . $whereClause
         . " ORDER BY id ASC
         ";
-        // die($sqlQuery);
+        // var_dump($sqlQuery);
         try{
             $result = mysqli_query($this->connection, $sqlQuery);            
             if (!$result){            
@@ -231,13 +231,16 @@ if (isset($_POST['user']) && isset($_POST['pass'])){
     $whereClause[] = "username = " . "'" . validateInputs($_POST['user']) . "'";   
     $whereClause[] = "password = " . "'" . validateInputs($_POST['pass']) . "'";   
     $userData =  json_decode($dbObj->getApiData('user', $whereClause), true);
-    if (isset($userData['data'])){
+    // var_dump($userData);
+    if (isset($userData['data']) && $userData['data']){
         $userInfo = $userData['data'][0];
         if ($userInfo){
             $userType = intval($userInfo[3]);            
         }        
     }
 }
+
+$whereClause = [];
 
 if ($userType > 2 &&  isset($_POST['op']) && $_POST['op'] == 'edit' && isset($_POST['id'])){
     // echo "Edit Mode";
@@ -272,6 +275,7 @@ else if($userType > 0 && isset($_POST['op']) && $_POST['op'] == 'show'){
     }
 
     if (isset($_POST['all'])){
+        // $whereClause = [];
         $whereClause[] = "1";
     }
    /* if (isset($_POST['password'])){
@@ -292,7 +296,11 @@ else if ($userType > 2 &&  isset($_POST['op']) && $_POST['op'] == 'create' && (
 } 
 else {
     $command = false;
-    echo json_encode(['msg' => "Command Not Found!!! OR You don't have enough permission"]);
+    if (!$userType){
+        echo json_encode(['msg' => "You should have an account"]);            
+    } else {        
+        echo json_encode(['msg' => "Command Not Found!!! OR You don't have enough permission"]);
+    }
 }
 
 // $dbObj->getDataTable($tblName, $whereClause); 

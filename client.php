@@ -49,7 +49,7 @@ function runWebService($formData = [], $debugMode = false){
                 $resultSet['msg'] = 'record not found';
             }
             else {
-                $resultSet['error'] = "Known webservice result!";
+                $resultSet['error'] = "unKnown webservice result!";
             }
         }
         curl_close($handle);        
@@ -87,15 +87,15 @@ function getCommand($user = null, $pass = null, $op = null, $value = null){
         'pass' => $pass
     ];
     
-    $all = 1;
+    // $all = 1;
     // $name = 'd3';
-    // $family = 'javadi';
+    $family = 'javadi';
     // $username = 'monline';
     $data = [];
     switch($op){
         case 'srch' : 
         $data = [            
-            'name' => 'mo'
+            'search' => 'mo'
         ];
         break;        
         case 'show' :        
@@ -129,8 +129,8 @@ function getCommand($user = null, $pass = null, $op = null, $value = null){
 
         case 'edit' : 
             $data = [               
-                'id' => 8,
-                'name' =>  'Morteza',
+                'id' => 3,
+                'name' =>  'jafar',
                 'family' =>  'razavi'
             ];
         break;
@@ -141,10 +141,17 @@ function getCommand($user = null, $pass = null, $op = null, $value = null){
         return $formData;        
  }
 
-    $username = "ali";
+    // $username = "ali";
+    // $username = "bahar";
+    // $username = "reza";
+    $username = "admin";
     $password = md5('123456');
 
-    setWebserviceData(getCommand($username, $password, 'show'));
+    // setWebserviceData(getCommand($username, $password, 'show'));
+    // setWebserviceData(getCommand($username, $password, 'srch'));
+    // setWebserviceData(getCommand($username, $password, 'edit'));
+    //  setWebserviceData(getCommand($username, $password, 'del'));
+     setWebserviceData(getCommand($username, $password, 'create'));
     // setWebserviceData(getCommand('create'));
     // setWebserviceData(getCommand('edit'));
     // setWebserviceData(getCommand('del'));
